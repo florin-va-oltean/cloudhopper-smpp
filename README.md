@@ -12,6 +12,27 @@ Cloudhopper-SMPP is proudly sponsored by <a href="https://www.greenback.com">Gre
 
 <a href="https://www.greenback.com?utm_source=github.com&utm_medium=sponsorship&utm_campaign=fizzed-cloudhopper-smpp" title="Greenback - Expenses made simple">More engineering. Less paperwork. Expenses made simple.</a>
 
+
+TL;DR
+-------------
+Obviously this is a fork; the intention of this fork is to remove all JMX metrics implemented custom and instead use dropwizard metrics. 
+
+The reason for this is to enable easy integration with monitoring systems; our case was integration with Prometheus.io and the custom "stock" implementation was not good enough.
+
+So no, it is actually easy via Dropwizard to dump counters as CSV, to expose them as JMX or via Prometheus simpleclient to expose them as prometheus multi-dimensional kpis. 
+
+Check out <code>com.cloudhopper.smpp.demo.ServerMain</code> for an example of how to use the library now. 
+
+``` 
+    // create a metrics registry (from dropwizard metrics lib)
+    MetricRegistry metrics = new MetricRegistry();
+    // create a bridge between dropwizard and prometheus (simpleclient_dropwizard provided by Prometheus.io)
+    new DropwizardExports(metrics,PrometheusUtils.smppSessionCountersBuilder()).register();
+    // create a http server with default metrics (from simpleclient_httpserver provided by Prometheus.io)
+    HTTPServer server = new HTTPServer(9090);
+```
+
+
 Overview
 ------------------------
 

@@ -39,6 +39,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.codahale.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +59,7 @@ public class ClientMain {
         // for monitoring thread use, it's preferable to create your own instance
         // of an executor with Executors.newCachedThreadPool() and cast it to ThreadPoolExecutor
         // this permits exposing thinks like executor.getActiveCount() via JMX possible
-        // no point renaming the threads in a factory since underlying Netty 
+        // no point renaming the threads in a factory since underlying Netty
         // framework does not easily allow you to customize your thread names
         ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newCachedThreadPool();
         
@@ -104,7 +106,7 @@ public class ClientMain {
         // to enable monitoring (request expiration)
         config0.setRequestExpiryTimeout(30000);
         config0.setWindowMonitorInterval(15000);
-        config0.setCountersEnabled(true);
+        config0.setMetricsRegistry(new MetricRegistry());
 
         //
         // create session, enquire link, submit an sms, close session

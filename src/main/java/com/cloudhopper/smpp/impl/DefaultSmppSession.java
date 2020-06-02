@@ -28,7 +28,6 @@ import com.cloudhopper.commons.util.windowing.WindowListener;
 import com.cloudhopper.smpp.SmppBindType;
 import com.cloudhopper.smpp.SmppConstants;
 import com.cloudhopper.smpp.SmppServerSession;
-import com.cloudhopper.smpp.jmx.TheMetricsRegistry;
 import com.cloudhopper.smpp.type.SmppChannelException;
 import com.cloudhopper.smpp.SmppSessionConfiguration;
 import com.cloudhopper.smpp.SmppSessionHandler;
@@ -63,6 +62,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.codahale.metrics.MetricRegistry;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
@@ -98,6 +98,7 @@ public class DefaultSmppSession implements SmppServerSession, SmppSessionChannel
     private BaseBindResp preparedBindResponse;
     private ScheduledExecutorService monitorExecutor;
     private String baseMetricsName ;
+    private MetricRegistry metrics ;
 
     /**
      * Creates an SmppSession for a server-based session.
@@ -110,9 +111,12 @@ public class DefaultSmppSession implements SmppServerSession, SmppSessionChannel
         this.serverSessionId = serverSessionId;
         this.preparedBindResponse = preparedBindResponse;
         this.interfaceVersion = interfaceVersion;
-        TheMetricsRegistry.INSTANCE.metrics().counter("smpp.sessions.sincestart."+getSystemId()+"." + interfaceVersion + "." + configuration.getType()).inc();
-        TheMetricsRegistry.INSTANCE.metrics().counter("smpp.sessions.current."+getSystemId()+"." + interfaceVersion + "." + configuration.getType()).inc();
-        this.baseMetricsName = "smpp.sessions.specific." + configuration.getSystemId() + "." + interfaceVersion + "." + configuration.getType();
+        metrics = configuration.getMetricsRegistry();
+        if(metrics!=null) {
+            metrics.counter("smpp.sessions." + getSystemId() + "." + getInterfaceVersionName() + "." + configuration.getType() + ".rx.nbSessionsSinceStart").inc();
+            metrics.counter("smpp.sessions." + getSystemId() + "." + getInterfaceVersionName() + "." + configuration.getType() + ".rx.nbSessionsCurrent").inc();
+        }
+        this.baseMetricsName = "smpp.sessions." + configuration.getSystemId() + "." + getInterfaceVersionName() + "." + configuration.getType();
     }
 
     /**
@@ -169,6 +173,7 @@ public class DefaultSmppSession implements SmppServerSession, SmppSessionChannel
         this.server = null;
         this.serverSessionId = null;
         this.preparedBindResponse = null;
+        metrics = configuration.getMetricsRegistry();
     }
         
     @Override
@@ -275,10 +280,10 @@ public class DefaultSmppSession implements SmppServerSession, SmppSessionChannel
     public Window<Integer,PduRequest,PduResponse> getSendWindow() {
         return this.sendWindow;
     }
-    
+
     @Override
     public boolean hasCounters() {
-        return (this.configuration.isCountersEnabled());
+        return (metrics!=null);
     }
 
     @Override
@@ -688,57 +693,38 @@ public class DefaultSmppSession implements SmppServerSession, SmppSessionChannel
 
 
     private void countSendRequestPdu(PduRequest pdu) {
-        if (!this.configuration.isCountersEnabled()) {
-            return;
-        }
-        if (pdu.isRequest()) {
-            TheMetricsRegistry.INSTANCE.metrics().counter(baseMetricsName + ".tx." + pdu.getName()+".request.count").inc();
+        if (metrics!=null && pdu.isRequest()) {
+            metrics.counter(baseMetricsName + ".tx." + pdu.getName()+"Count").inc();
         }
     }
     
     private void countSendResponsePdu(PduResponse pdu, long responseTime, long estimatedProcessingTime) {
-        if (!this.configuration.isCountersEnabled()) {
-            return;     // noop
-        }
-        
-        if (pdu.isResponse()) {
-            String statName = baseMetricsName + ".rx." +pdu.getName() + ".response.";
-            TheMetricsRegistry.INSTANCE.metrics().timer(statName + "Timer").update(responseTime,TimeUnit.NANOSECONDS);
-            TheMetricsRegistry.INSTANCE.metrics().timer(statName + "EstimatedTimer").update(estimatedProcessingTime,TimeUnit.NANOSECONDS);
-            TheMetricsRegistry.INSTANCE.metrics().counter(statName + "Status_"+pdu.getCommandStatus()).inc();
+        if (metrics!=null && pdu.isResponse()) {
+            String statName = baseMetricsName + ".rx." +pdu.getName();
+            metrics.timer(statName + "Timer").update(responseTime,TimeUnit.NANOSECONDS);
+            metrics.timer(statName + "EstimatedTimer").update(estimatedProcessingTime,TimeUnit.NANOSECONDS);
+            metrics.histogram(statName + "Status").update(pdu.getCommandStatus());
         }
     }
     
     private void countSendRequestPduExpired(PduRequest pdu) {
-        if (!this.configuration.isCountersEnabled()) {
-            return;     // noop
-        }
-        
-        if (pdu.isRequest()) {
-            TheMetricsRegistry.INSTANCE.metrics().counter(baseMetricsName + ".tx." + pdu.getName() + ".expired").inc();
+        if (metrics!=null && pdu.isRequest()) {
+            metrics.counter(baseMetricsName + ".tx." + pdu.getName() + "Expired").inc();
         }
     }
     
     private void countReceiveRequestPdu(PduRequest pdu) {
-        if (!this.configuration.isCountersEnabled()) {
-            return;     // noop
-        }
-        
-        if (pdu.isRequest()) {
-            TheMetricsRegistry.INSTANCE.metrics().counter(baseMetricsName + ".rx." + pdu.getName() + ".request.count").inc();
+        if (metrics!=null && pdu.isRequest()) {
+            metrics.counter(baseMetricsName + ".rx." + pdu.getName() + "Count").inc();
         }
     }
     
     private void countReceiveResponsePdu(PduResponse pdu, long waitTime, long responseTime, long estimatedProcessingTime) {
-        if (this.configuration.isCountersEnabled()) {
-            return;     // noop
-        }
-        
-        if (pdu.isResponse()) {
-            String statName = baseMetricsName + ".tx." +pdu.getName() + ".response.";
-            TheMetricsRegistry.INSTANCE.metrics().timer(statName + "WaitTimer").update(waitTime,TimeUnit.NANOSECONDS);
-            TheMetricsRegistry.INSTANCE.metrics().timer(statName + "EstimatedProcessingTimer").update(estimatedProcessingTime,TimeUnit.NANOSECONDS);
-            TheMetricsRegistry.INSTANCE.metrics().counter(statName + "Status_"+pdu.getCommandStatus()).inc();
+        if (metrics!=null && pdu.isResponse()) {
+            String statName = baseMetricsName + ".tx." +pdu.getName();
+            metrics.timer(statName + "WaitTimer").update(waitTime,TimeUnit.NANOSECONDS);
+            metrics.timer(statName + "EstimatedProcessingTimer").update(estimatedProcessingTime,TimeUnit.NANOSECONDS);
+            metrics.histogram(statName + "Status").update(pdu.getCommandStatus());
         }
     }
     

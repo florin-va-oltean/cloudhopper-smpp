@@ -27,12 +27,11 @@ import com.cloudhopper.smpp.SmppSession;
 import com.cloudhopper.smpp.SmppSessionConfiguration;
 import com.cloudhopper.smpp.impl.DefaultSmppServer;
 import com.cloudhopper.smpp.impl.DefaultSmppSessionHandler;
-import com.cloudhopper.smpp.jmx.TheMetricsRegistry;
 import com.cloudhopper.smpp.pdu.BaseBind;
 import com.cloudhopper.smpp.pdu.BaseBindResp;
-import com.cloudhopper.smpp.pdu.BaseSm;
 import com.cloudhopper.smpp.pdu.PduRequest;
 import com.cloudhopper.smpp.pdu.PduResponse;
+import com.cloudhopper.smpp.stats.PrometheusUtils;
 import com.cloudhopper.smpp.type.SmppProcessingException;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Executors;
@@ -41,7 +40,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.codahale.metrics.jmx.JmxReporter;
+import com.codahale.metrics.MetricRegistry;
+import io.prometheus.client.dropwizard.DropwizardExports;
+import io.prometheus.client.exporter.HTTPServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +54,12 @@ public class ServerMain {
     private static final Logger logger = LoggerFactory.getLogger(ServerMain.class);
 
     static public void main(String[] args) throws Exception {
+
+        MetricRegistry metrics = new MetricRegistry();
+        new DropwizardExports(metrics,PrometheusUtils.smppSessionCountersBuilder()).register();
+
+        HTTPServer server = new HTTPServer(9090);
+
         //
         // setup 3 things required for a server
         //
@@ -77,8 +84,7 @@ public class ServerMain {
             }
         });
 
-        final JmxReporter reporter = JmxReporter.forRegistry(TheMetricsRegistry.INSTANCE.metrics()).build();
-        reporter.start();
+
 
         // create a server configuration
         SmppServerConfiguration configuration = new SmppServerConfiguration();
@@ -90,7 +96,7 @@ public class ServerMain {
         configuration.setDefaultWindowSize(5);
         configuration.setDefaultWindowWaitTimeout(configuration.getDefaultRequestExpiryTimeout());
         configuration.setDefaultSessionCountersEnabled(true);
-        configuration.setJmxEnabled(true);
+        configuration.setMetricsRegistry(metrics);
         
         // create a server, start it up
         DefaultSmppServer smppServer = new DefaultSmppServer(configuration, new DefaultSmppServerHandler(), executor, monitorExecutor);
@@ -105,8 +111,6 @@ public class ServerMain {
         logger.info("Stopping SMPP server...");
         smppServer.stop();
         logger.info("SMPP server stopped");
-        
-        logger.info("Server counters: {}", smppServer.getCounters());
     }
 
     public static class DefaultSmppServerHandler implements SmppServerHandler {

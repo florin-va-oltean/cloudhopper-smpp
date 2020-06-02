@@ -38,6 +38,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.codahale.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +115,7 @@ public class PerformanceClientMain {
         // to enable monitoring (request expiration)
         config.setRequestExpiryTimeout(30000);
         config.setWindowMonitorInterval(15000);
-        config.setCountersEnabled(true);
+        config.setMetricsRegistry(new MetricRegistry());
 
         // various latches used to signal when things are ready
         CountDownLatch allSessionsBoundSignal = new CountDownLatch(SESSION_COUNT);

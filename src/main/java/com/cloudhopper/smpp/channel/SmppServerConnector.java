@@ -26,6 +26,8 @@ import com.cloudhopper.smpp.impl.UnboundSmppSession;
 import com.cloudhopper.smpp.ssl.SslConfiguration;
 import com.cloudhopper.smpp.ssl.SslContextFactory;
 import javax.net.ssl.SSLEngine;
+
+import com.codahale.metrics.MetricRegistry;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipelineCoverage;
@@ -48,10 +50,13 @@ public class SmppServerConnector extends SimpleChannelUpstreamHandler {
     // reference to every channel connected via this server channel
     private ChannelGroup channels;
     private DefaultSmppServer server;
+    private MetricRegistry metrics = null;
 
     public SmppServerConnector(ChannelGroup channels, DefaultSmppServer server) {
         this.channels = channels;
         this.server = server;
+        this.metrics = server.getConfiguration().getMetricsRegistry();
+
     }
 
     @Override
@@ -61,8 +66,10 @@ public class SmppServerConnector extends SimpleChannelUpstreamHandler {
 
         // always add it to our channel group
         channels.add(channel);
-        this.server.getCounters().incrementChannelConnectsAndGet();
-
+        if(metrics!=null) {
+            metrics.counter("smpp.server.channels.connected.ever").inc();
+            metrics.counter("smpp.server.channels.connected.instant").inc();
+        }
         // create a default "unbound" thread name for the thread processing the channel
         // this will create a name of "RemoteIPAddress.RemotePort"
         String channelName = ChannelUtil.createChannelName(channel);
@@ -99,7 +106,9 @@ public class SmppServerConnector extends SimpleChannelUpstreamHandler {
     public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
         // called every time a channel disconnects
         channels.remove(e.getChannel());
-        this.server.getCounters().incrementChannelDisconnectsAndGet();
+        if(metrics!=null) {
+            metrics.counter("smpp.server.channels.connected.instant").dec();
+        }
     }
 
 }

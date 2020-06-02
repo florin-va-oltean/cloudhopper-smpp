@@ -43,6 +43,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.codahale.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,7 +111,7 @@ public class QueryCancelMain {
         // to enable monitoring (request expiration)
         config0.setRequestExpiryTimeout(30000);
         config0.setWindowMonitorInterval(15000);
-        config0.setCountersEnabled(true);
+        config0.setMetricsRegistry(new MetricRegistry());
 
         //
         // create session, enquire link, submit an sms, close session

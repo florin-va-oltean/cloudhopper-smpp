@@ -115,11 +115,8 @@ public class Main {
 		config.setPassword("password");
 		config.getLoggingOptions().setLogBytes(false);
 		// to enable monitoring (request expiration)
-
 		config.setRequestExpiryTimeout(30000);
 		config.setWindowMonitorInterval(15000);
-
-		config.setCountersEnabled(false);
 		return config;
 	}
 

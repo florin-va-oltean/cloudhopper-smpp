@@ -4,7 +4,7 @@
     <groupId>com.fizzed</groupId>
     <artifactId>ch-smpp</artifactId>
     <packaging>jar</packaging>
-    <version>5.0.11-SNAPSHOT</version>
+    <version>5.0.12-SNAPSHOT</version>
     <name>ch-smpp</name>
     <description>Efficient, scalable, and flexible Java implementation of the Short Messaging Peer to Peer Protocol (SMPP)</description>
     <url>https://github.com/twitter/cloudhopper-smpp</url>
@@ -42,9 +42,19 @@
             <version>4.0.0</version>
         </dependency>
         <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-jmx</artifactId>
-            <version>4.0.5</version>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient</artifactId>
+            <version>0.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_httpserver</artifactId>
+            <version>0.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_dropwizard</artifactId>
+            <version>0.6.0</version>
         </dependency>
         <dependency>
             <groupId>com.cloudhopper</groupId>

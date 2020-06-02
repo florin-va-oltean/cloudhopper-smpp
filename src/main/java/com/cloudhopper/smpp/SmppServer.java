@@ -69,7 +69,4 @@ public interface SmppServer {
     public void destroy();
 
     public ChannelGroup getChannels();
-    
-    public SmppServerCounters getCounters();
-
 }

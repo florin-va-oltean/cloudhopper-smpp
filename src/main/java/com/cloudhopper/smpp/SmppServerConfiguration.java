@@ -22,6 +22,7 @@ package com.cloudhopper.smpp;
 
 import com.cloudhopper.smpp.ssl.SslConfiguration;
 import com.cloudhopper.smpp.type.SmppConnectionConfiguration;
+import com.codahale.metrics.MetricRegistry;
 
 /**
  * Configuration of an SMPP server.
@@ -49,15 +50,13 @@ public class SmppServerConfiguration extends SmppConnectionConfiguration {
     private int maxConnectionSize;
     private boolean nonBlockingSocketsEnabled;
     private boolean reuseAddress;
-    // jmx options
-    private boolean jmxEnabled;
-    private String jmxDomain;
     // default request expiry timeout on server sessions
     private int defaultWindowSize = SmppConstants.DEFAULT_WINDOW_SIZE;
     private long defaultWindowWaitTimeout = SmppConstants.DEFAULT_WINDOW_WAIT_TIMEOUT;
     private long defaultRequestExpiryTimeout = SmppConstants.DEFAULT_REQUEST_EXPIRY_TIMEOUT;
     private long defaultWindowMonitorInterval = SmppConstants.DEFAULT_WINDOW_MONITOR_INTERVAL;
     private boolean defaultSessionCountersEnabled = false;
+    private MetricRegistry metrics = null;
 
     public SmppServerConfiguration() {
         super("0.0.0.0", 2775, 5000l);
@@ -69,28 +68,18 @@ public class SmppServerConfiguration extends SmppConnectionConfiguration {
         this.maxConnectionSize = SmppConstants.DEFAULT_SERVER_MAX_CONNECTION_SIZE;
         this.nonBlockingSocketsEnabled = SmppConstants.DEFAULT_SERVER_NON_BLOCKING_SOCKETS_ENABLED;
         this.reuseAddress = SmppConstants.DEFAULT_SERVER_REUSE_ADDRESS;
-        this.jmxEnabled = false;
-        this.jmxDomain = "com.cloudhopper.smpp";
         this.defaultWindowSize = SmppConstants.DEFAULT_WINDOW_SIZE;
         this.defaultWindowWaitTimeout = SmppConstants.DEFAULT_WINDOW_WAIT_TIMEOUT;
         this.defaultRequestExpiryTimeout = SmppConstants.DEFAULT_REQUEST_EXPIRY_TIMEOUT;
         this.defaultWindowMonitorInterval = SmppConstants.DEFAULT_WINDOW_MONITOR_INTERVAL;
     }
 
-    public String getJmxDomain() {
-        return jmxDomain;
+    public void setMetricsRegistry(MetricRegistry registry){
+        metrics = registry;
     }
 
-    public void setJmxDomain(String jmxDomain) {
-        this.jmxDomain = jmxDomain;
-    }
-
-    public boolean isJmxEnabled() {
-        return jmxEnabled;
-    }
-
-    public void setJmxEnabled(boolean jmxEnabled) {
-        this.jmxEnabled = jmxEnabled;
+    public MetricRegistry getMetricsRegistry(){
+        return metrics;
     }
     
     public boolean isReuseAddress() {

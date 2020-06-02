@@ -49,6 +49,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.codahale.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,7 +96,7 @@ public class ServerEchoMain {
         configuration.setDefaultWindowSize(5);
         configuration.setDefaultWindowWaitTimeout(configuration.getDefaultRequestExpiryTimeout());
         configuration.setDefaultSessionCountersEnabled(true);
-        configuration.setJmxEnabled(true);
+        configuration.setMetricsRegistry(new MetricRegistry());
 
         // create a server, start it up
         DefaultSmppServer smppServer = new DefaultSmppServer(configuration, new DefaultSmppServerHandler(), executor, monitorExecutor);
@@ -109,8 +111,6 @@ public class ServerEchoMain {
         logger.info("Stopping SMPP server...");
         smppServer.stop();
         logger.info("SMPP server stopped");
-
-        logger.info("Server counters: {}", smppServer.getCounters());
     }
 
     public static class DefaultSmppServerHandler implements SmppServerHandler {

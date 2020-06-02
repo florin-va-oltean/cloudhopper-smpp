@@ -24,6 +24,7 @@ import com.cloudhopper.smpp.ssl.SslConfiguration;
 import com.cloudhopper.smpp.type.SmppConnectionConfiguration;
 import com.cloudhopper.smpp.type.LoggingOptions;
 import com.cloudhopper.smpp.type.Address;
+import com.codahale.metrics.MetricRegistry;
 
 /**
  * Configuration to bind an SmppSession as an ESME to an SMSC.
@@ -53,7 +54,7 @@ public class SmppSessionConfiguration extends SmppConnectionConfiguration {
     private long requestExpiryTimeout;
     private long windowMonitorInterval;
     private long writeTimeout;
-    private boolean countersEnabled;
+    private MetricRegistry metrics = null;
 
     public SmppSessionConfiguration() {
         this(SmppBindType.TRANSCEIVER, null, null, null);
@@ -76,7 +77,14 @@ public class SmppSessionConfiguration extends SmppConnectionConfiguration {
         this.requestExpiryTimeout = SmppConstants.DEFAULT_REQUEST_EXPIRY_TIMEOUT;
         this.windowMonitorInterval = SmppConstants.DEFAULT_WINDOW_MONITOR_INTERVAL;
         this.writeTimeout = SmppConstants.DEFAULT_WRITE_TIMEOUT;
-        this.countersEnabled = false;
+    }
+
+    public void setMetricsRegistry(MetricRegistry registry){
+        metrics = registry;
+    }
+
+    public MetricRegistry getMetricsRegistry(){
+        return metrics;
     }
 
     public void setName(String value) {
@@ -228,14 +236,6 @@ public class SmppSessionConfiguration extends SmppConnectionConfiguration {
 
     public void setWriteTimeout(long writeTimeout) {
         this.writeTimeout = writeTimeout;
-    }
-
-    public boolean isCountersEnabled() {
-        return countersEnabled;
-    }
-
-    public void setCountersEnabled(boolean countersEnabled) {
-        this.countersEnabled = countersEnabled;
     }
 
 }

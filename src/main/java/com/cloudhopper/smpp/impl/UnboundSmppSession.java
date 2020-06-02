@@ -178,7 +178,7 @@ public class UnboundSmppSession implements SmppSessionChannelListener {
         sessionConfiguration.setWindowWaitTimeout(server.getConfiguration().getDefaultWindowWaitTimeout());
         sessionConfiguration.setWindowMonitorInterval(server.getConfiguration().getDefaultWindowMonitorInterval());
         sessionConfiguration.setRequestExpiryTimeout(server.getConfiguration().getDefaultRequestExpiryTimeout());
-        sessionConfiguration.setCountersEnabled(server.getConfiguration().isDefaultSessionCountersEnabled());
+        sessionConfiguration.setMetricsRegistry(server.getConfiguration().getMetricsRegistry());
 
         return sessionConfiguration;
     }
@@ -213,7 +213,9 @@ public class UnboundSmppSession implements SmppSessionChannelListener {
             logger.warn("Channel not bound within [{}] ms, closing connection [{}]", server.getConfiguration().getBindTimeout(), channelName);
             channel.close();
             this.cancel();
-            server.getCounters().incrementBindTimeoutsAndGet();
+            if(server.getConfiguration().getMetricsRegistry()!=null) {
+                server.getConfiguration().getMetricsRegistry().counter("smpp.server.bind.tx.timeout").inc();
+            }
         }
     }
 }
