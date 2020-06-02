@@ -190,7 +190,6 @@ public class OutboundClient extends Client {
 		try {
 			if (smppSession != null) {
 				logger.debug("Cleaning up session... (final counters)");
-				logCounters();
 
 				smppSession.destroy();
 				smppSession = null;
@@ -202,18 +201,6 @@ public class OutboundClient extends Client {
 		}
 	}
 
-	private void logCounters() {
-		if (smppSession.hasCounters()) {
-			logger.debug("tx-enquireLink: {}", smppSession.getCounters().getTxEnquireLink());
-			logger.debug("tx-submitSM: {}", smppSession.getCounters().getTxSubmitSM());
-			logger.debug("tx-deliverSM: {}", smppSession.getCounters().getTxDeliverSM());
-			logger.debug("tx-dataSM: {}", smppSession.getCounters().getTxDataSM());
-			logger.debug("rx-enquireLink: {}", smppSession.getCounters().getRxEnquireLink());
-			logger.debug("rx-submitSM: {}", smppSession.getCounters().getRxSubmitSM());
-			logger.debug("rx-deliverSM: {}", smppSession.getCounters().getRxDeliverSM());
-			logger.debug("rx-dataSM: {}", smppSession.getCounters().getRxDataSM());
-		}
-	}
 
 	public Integer getConnectionFailedTimes() {
 		return connectionFailedTimes;

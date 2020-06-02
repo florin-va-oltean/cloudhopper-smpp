@@ -135,9 +135,6 @@ public class ServerEchoMain {
         public void sessionDestroyed(Long sessionId, SmppServerSession session) {
             logger.info("Session destroyed: {}", session);
             // print out final stats
-            if (session.hasCounters()) {
-                logger.info(" final session rx-submitSM: {}", session.getCounters().getRxSubmitSM());
-            }
 
             // make sure it's really shutdown
             session.destroy();

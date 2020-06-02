@@ -168,16 +168,6 @@ public class ClientMain {
 
         if (session0 != null) {
             logger.info("Cleaning up session... (final counters)");
-            if (session0.hasCounters()) {
-                logger.info("tx-enquireLink: {}", session0.getCounters().getTxEnquireLink());
-                logger.info("tx-submitSM: {}", session0.getCounters().getTxSubmitSM());
-                logger.info("tx-deliverSM: {}", session0.getCounters().getTxDeliverSM());
-                logger.info("tx-dataSM: {}", session0.getCounters().getTxDataSM());
-                logger.info("rx-enquireLink: {}", session0.getCounters().getRxEnquireLink());
-                logger.info("rx-submitSM: {}", session0.getCounters().getRxSubmitSM());
-                logger.info("rx-deliverSM: {}", session0.getCounters().getRxDeliverSM());
-                logger.info("rx-dataSM: {}", session0.getCounters().getRxDataSM());
-            }
             
             session0.destroy();
             // alternatively, could call close(), get outstanding requests from

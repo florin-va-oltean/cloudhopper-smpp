@@ -27,6 +27,7 @@ import com.cloudhopper.smpp.SmppSession;
 import com.cloudhopper.smpp.SmppSessionConfiguration;
 import com.cloudhopper.smpp.impl.DefaultSmppServer;
 import com.cloudhopper.smpp.impl.DefaultSmppSessionHandler;
+import com.cloudhopper.smpp.jmx.TheMetricsRegistry;
 import com.cloudhopper.smpp.pdu.BaseBind;
 import com.cloudhopper.smpp.pdu.BaseBindResp;
 import com.cloudhopper.smpp.pdu.BaseSm;
@@ -39,6 +40,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.codahale.metrics.jmx.JmxReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,8 +75,11 @@ public class ServerMain {
                 t.setName("SmppServerSessionWindowMonitorPool-" + sequence.getAndIncrement());
                 return t;
             }
-        }); 
-        
+        });
+
+        final JmxReporter reporter = JmxReporter.forRegistry(TheMetricsRegistry.INSTANCE.metrics()).build();
+        reporter.start();
+
         // create a server configuration
         SmppServerConfiguration configuration = new SmppServerConfiguration();
         configuration.setPort(2776);
@@ -126,7 +132,7 @@ public class ServerMain {
             logger.info("Session destroyed: {}", session);
             // print out final stats
             if (session.hasCounters()) {
-                logger.info(" final session rx-submitSM: {}", session.getCounters().getRxSubmitSM());
+                logger.info("final session rx-submitSM");
             }
             
             // make sure it's really shutdown

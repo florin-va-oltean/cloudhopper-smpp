@@ -41,6 +41,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.lang.Thread.sleep;
+
 /**
  *
  * @author joelauer (twitter: @jjlauer or <a href="http://twitter.com/jjlauer" target=window>http://twitter.com/jjlauer</a>)
@@ -161,12 +163,9 @@ public class PerformanceClientMain {
         logger.info("  Actual Submit: " + actualSubmitSent);
         double throughput = (double)actualSubmitSent/((double)(stopTimeMillis - startTimeMillis)/(double)1000);
         logger.info("     Throughput: " + DecimalUtil.toString(throughput, 3) + " per sec");
-        
-        for (int i = 0; i < SESSION_COUNT; i++) {
-            if (tasks[i].session != null && tasks[i].session.hasCounters()) {
-                logger.info(" Session " + i + ": submitSM {}", tasks[i].session.getCounters().getTxSubmitSM());
-            }
-        }
+
+
+        sleep(5000);
 
         // this is required to not causing server to hang from non-daemon threads
         // this also makes sure all open Channels are closed to I *think*

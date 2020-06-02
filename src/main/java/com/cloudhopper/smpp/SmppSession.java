@@ -188,12 +188,7 @@ public interface SmppSession {
      * @return True if the session has counters
      */
     public boolean hasCounters();
-    
-    /**
-     * Gets the counters this session is tracking.
-     * @return The session counters or null if counters are disabled.
-     */
-    public SmppSessionCounters getCounters();
+
 
     /**
      * Immediately close the session by closing the underlying socket/channel.
@@ -292,7 +287,7 @@ public interface SmppSession {
      * the correct PDU we were waiting for, so the caller should verify it.
      * For example it is possible that a "Generic_Nack" could be returned by
      * the remote endpoint in response to a PDU.
-     * @param requestPdu The request PDU to send
+     * @param request The request PDU to send
      * @param timeoutMillis If synchronous is true, this represents the time to
      *      wait for a slot to open in the underlying window AND the time to wait
      *      for a response back from the remote endpoint. If synchronous is false,

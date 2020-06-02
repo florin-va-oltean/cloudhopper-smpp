@@ -32,6 +32,7 @@ import com.cloudhopper.smpp.channel.SmppSessionLogger;
 import com.cloudhopper.smpp.channel.SmppSessionThreadRenamer;
 import com.cloudhopper.smpp.channel.SmppSessionWrapper;
 import com.cloudhopper.smpp.jmx.DefaultSmppServerMXBean;
+import com.cloudhopper.smpp.jmx.TheMetricsRegistry;
 import com.cloudhopper.smpp.pdu.BaseBind;
 import com.cloudhopper.smpp.pdu.BaseBindResp;
 import com.cloudhopper.smpp.tlv.Tlv;
@@ -356,60 +357,17 @@ public class DefaultSmppServer implements SmppServer, DefaultSmppServerMXBean {
         if (this.channels.size() > this.configuration.getMaxConnectionSize()) {
             logger.warn("The current connection size [{}] exceeds the configured max connection size [{}]", this.channels.size(), this.configuration.getMaxConnectionSize());
         }
-        
-        // session created, now pass it upstream
-        counters.incrementSessionCreatedAndGet();
-        incrementSessionSizeCounters(session);
+
         this.serverHandler.sessionCreated(sessionId, session, preparedBindResponse);
-        
-        // register this session as an mbean
-        if (configuration.isJmxEnabled()) {
-            session.registerMBean(configuration.getJmxDomain() + ":type=" + configuration.getName() + "Sessions,name=" + sessionId);
-        }
     }
 
 
     protected void destroySession(Long sessionId, DefaultSmppSession session) {
+        TheMetricsRegistry.INSTANCE.metrics().counter("smpp.sessions.current."+session.getSystemId()+"." + session.getInterfaceVersion() + "." + session.getConfiguration().getType()).dec();
         // session destroyed, now pass it upstream
-        counters.incrementSessionDestroyedAndGet();
-        decrementSessionSizeCounters(session);
         serverHandler.sessionDestroyed(sessionId, session);
-        
-        // unregister this session as an mbean
-        if (configuration.isJmxEnabled()) {
-            session.unregisterMBean(configuration.getJmxDomain() + ":type=" + configuration.getName() + "Sessions,name=" + sessionId);
-        }
     }
-    
-    private void incrementSessionSizeCounters(DefaultSmppSession session) {
-        this.counters.incrementSessionSizeAndGet();
-        switch (session.getBindType()) {
-            case TRANSCEIVER:
-                this.counters.incrementTransceiverSessionSizeAndGet();
-                break;
-            case RECEIVER:
-                this.counters.incrementTransmitterSessionSizeAndGet();
-                break;
-            case TRANSMITTER:
-                this.counters.incrementReceiverSessionSizeAndGet();
-                break;
-        }
-    }
-    
-    private void decrementSessionSizeCounters(DefaultSmppSession session) {
-        this.counters.decrementSessionSizeAndGet();
-        switch (session.getBindType()) {
-            case TRANSCEIVER:
-                this.counters.decrementTransceiverSessionSizeAndGet();
-                break;
-            case RECEIVER:
-                this.counters.decrementTransmitterSessionSizeAndGet();
-                break;
-            case TRANSMITTER:
-                this.counters.decrementReceiverSessionSizeAndGet();
-                break;
-        }
-    }
+
 
     // mainly for exposing via JMX
     
