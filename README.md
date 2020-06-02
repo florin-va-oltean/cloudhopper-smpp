@@ -15,11 +15,11 @@ Cloudhopper-SMPP is proudly sponsored by <a href="https://www.greenback.com">Gre
 
 TL;DR
 -------------
-Obviously this is a fork; the intention of this fork is to remove all JMX metrics implemented custom and instead use dropwizard metrics. 
+Obviously this is a fork; the intention of this fork is to remove all JMX metrics custom implemented and instead use dropwizard metrics. 
 
 The reason for this is to enable easy integration with monitoring systems; our case was integration with Prometheus.io and the custom "stock" implementation was not good enough.
 
-So no, it is actually easy via Dropwizard to dump counters as CSV, to expose them as JMX or via Prometheus simpleclient to expose them as prometheus multi-dimensional kpis. 
+So now it is actually easy via Dropwizard to dump counters as CSV, to expose them as JMX or as Prometheus multi-dimensional metrics via simpleclient. 
 
 Check out <code>com.cloudhopper.smpp.demo.ServerMain</code> for an example of how to use the library now. 
 
@@ -32,6 +32,7 @@ Check out <code>com.cloudhopper.smpp.demo.ServerMain</code> for an example of ho
     HTTPServer server = new HTTPServer(9090);
 ```
 
+If you don't  need the counters at all, use <code>com.cloudhopper.smpp.SmppServerConfiguration.setMetricsRegistry</code> to set it to <code>null</code>.
 
 Overview
 ------------------------
